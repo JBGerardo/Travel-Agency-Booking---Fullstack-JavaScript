@@ -14,12 +14,13 @@ function Booking() {
   const [travelDate, setTravelDate] = useState("");
   const [bookingId, setBookingId] = useState(null);
 
-  //Fetch destination details
+  // Fetch destination details
   useEffect(() => {
     if (destinationId) {
-      axios.get(`http://localhost:5000/api/destinations/${destinationId}`)
-        .then(response => setDestination(response.data))
-        .catch(error => console.error("Error fetching destination:", error));
+      axios
+        .get(`http://localhost:5000/api/destinations/${destinationId}`)
+        .then((response) => setDestination(response.data))
+        .catch((error) => console.error("Error fetching destination:", error));
     }
   }, [destinationId]);
 
@@ -27,63 +28,66 @@ function Booking() {
   const handleBooking = async (e) => {
     e.preventDefault();
     if (!travelDate) {
-        alert("Please select a travel date.");
-        return;
+      alert("Please select a travel date.");
+      return;
     }
 
-    const token = localStorage.getItem("token"); // Retrieve token from local storage
+    const token = localStorage.getItem("token");
     if (!token) {
-        alert("You must be logged in to book a trip.");
-        navigate("/login");
-        return;
+      alert("You must be logged in to book a trip.");
+      navigate("/login");
+      return;
     }
 
     try {
-        const res = await axios.post("http://localhost:5000/api/bookings", {
-            user: user._id,
-            destination: destinationId,
-            date: travelDate,
-        }, {
-            headers: { Authorization: `Bearer ${token}` }, 
-        });
+      // Step 1: Create Booking
+      const bookingRes = await axios.post(
+        "http://localhost:5000/api/bookings",
+        {
+          user: user._id,
+          destination: destinationId,
+          date: travelDate,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-        setBookingId(res.data.booking._id);
-        alert("Booking created! Proceeding to payment...");
-        window.location.href = res.data.url; // Redirect to Stripe
+      if (!bookingRes.data.booking) {
+        throw new Error("Invalid response from the server.");
+      }
+
+      setBookingId(bookingRes.data.booking._id);
+
+      alert("Booking created! Proceeding to payment...");
+      window.location.href = `/payments?bookingId=${bookingRes.data.booking._id}`;
     } catch (error) {
-        console.error("Booking error:", error.response ? error.response.data : error.message);
-        alert(`Booking failed: ${error.response ? error.response.data.message : "Please try again."}`);
-    }
-};
-
-  // Handle Stripe Payment
-  const handlePayment = async (bookingId) => {
-    try {
-      const res = await axios.post("http://localhost:5000/api/payments/checkout", {
-        bookingId,
-      });
-
-      window.location.href = res.data.url; // Redirect to Stripe Checkout
-    } catch (error) {
-      console.error("Payment error:", error);
-      alert("Payment failed. Please try again.");
+      console.error("Booking error:", error.response ? error.response.data : error.message);
+      alert(`Booking failed: ${error.response ? error.response.data.message : "Please try again."}`);
     }
   };
 
-  if (!destination) return <p>Loading destination...</p>;
-
   return (
     <div className="booking-container">
-      <h1>Book Your Trip</h1>
-      <h3>{destination.name}</h3>
-      <p>{destination.location} - ${destination.price}</p>
-      <p>{destination.description}</p>
-
-      <form onSubmit={handleBooking}>
-        <label>Select Travel Date:</label>
-        <input type="date" value={travelDate} onChange={(e) => setTravelDate(e.target.value)} required />
-        <button type="submit">Confirm Booking & Pay</button>
-      </form>
+      <h2>Book Your Trip</h2>
+      {destination ? (
+        <div>
+          <h3>{destination.name}</h3>
+          <p>{destination.description}</p>
+          <form onSubmit={handleBooking}>
+            <label>Select Travel Date:</label>
+            <input
+              type="date"
+              value={travelDate}
+              onChange={(e) => setTravelDate(e.target.value)}
+              required
+            />
+            <button type="submit">Book Now</button>
+          </form>
+        </div>
+      ) : (
+        <p>Loading destination details...</p>
+      )}
     </div>
   );
 }

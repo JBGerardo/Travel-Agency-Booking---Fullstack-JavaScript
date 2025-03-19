@@ -5,8 +5,9 @@ import axios from "axios";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);  // Stores user info
-  const [token, setToken] = useState(localStorage.getItem("token") || "");  // Store JWT token
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(localStorage.getItem("token") || "");  
+  let navigate = null; // Will be set dynamically
 
   // Fetch user profile when token is available
   useEffect(() => {
@@ -15,7 +16,7 @@ export const AuthProvider = ({ children }) => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(res => setUser(res.data))
-      .catch(() => setUser(null)); // Clear user if token is invalid
+      .catch(() => setUser(null)); 
     }
   }, [token]);
 
@@ -30,13 +31,14 @@ export const AuthProvider = ({ children }) => {
   // Function to log out user and clear token
   const logout = () => {
     localStorage.removeItem("token");
-    setToken("");
+    localStorage.removeItem("user"); 
     setUser(null);
+    if (navigate) navigate("/login"); //  Redirect only if navigate is set
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
-      {children} {/* Provides authentication state to entire app */}
+    <AuthContext.Provider value={{ user, login, logout, setNavigate: (nav) => navigate = nav }}>
+      {children} 
     </AuthContext.Provider>
   );
 };

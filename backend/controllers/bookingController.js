@@ -16,11 +16,22 @@ exports.addBooking = async (req, res) => {
       return res.status(404).json({ message: "Destination not found." });
     }
 
+    // Check if user has a cancelled booking for the same destination
+    let existingBooking = await Booking.findOne({ user, destination, status: "cancelled" });
+
+    if (existingBooking) {
+      existingBooking.status = "pending"; // Reactivate the booking
+      existingBooking.date = new Date(date);
+      await existingBooking.save();
+      return res.status(200).json({ message: "Booking reactivated", booking: existingBooking });
+    }
+
     // Create a new booking
     const booking = new Booking({
       user,
       destination,
-      date: new Date(date), // Ensure it's stored as a Date object
+      date: new Date(date),
+      status: "pending"
     });
 
     await booking.save();
@@ -29,8 +40,8 @@ exports.addBooking = async (req, res) => {
     console.error("Error saving booking:", error);
     res.status(500).json({ message: "Server error", error });
   }
-
 };
+
 exports.getUserBookings = async (req, res) => {
     try {
       const userId = req.params.userId;

@@ -1,6 +1,6 @@
 import React, { useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 function Login() {
   const [email, setEmail] = useState("");  // Stores email input
@@ -27,6 +27,8 @@ function Login() {
         <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
         <button type="submit">Login</button>
       </form>
+
+      <p>Don't have an account? <Link to="/register">Sign up here</Link></p>
     </div>
   );
 }

@@ -1,5 +1,5 @@
-import React, { useContext } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import React, { useContext, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AuthContext } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
@@ -17,9 +17,17 @@ function ProtectedRoute({ children }) {
   return user ? children : <Navigate to="/login" />;
 }
 
-function App() {
+//  New component to provide `useNavigate` to `AuthContext`
+function AppContent() {
+  const { setNavigate } = useContext(AuthContext); // Get setter function from AuthContext
+  const navigate = useNavigate(); // Get navigate function
+
+  useEffect(() => {
+    setNavigate(navigate); //  Pass navigate to AuthContext
+  }, [navigate, setNavigate]);
+
   return (
-    <Router>
+    <>
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
@@ -32,6 +40,14 @@ function App() {
         <Route path="/payments/success" element={<PaymentSuccess />} />
         <Route path="/payments/cancel" element={<PaymentCancel />} />
       </Routes>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppContent />
     </Router>
   );
 }
