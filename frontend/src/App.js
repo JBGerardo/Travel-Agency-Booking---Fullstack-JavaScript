@@ -1,31 +1,31 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-
-// Check if all imports are correct
-import Navbar from "./components/Navbar"; 
-import Footer from "./components/Footer"; 
+import React, { useContext } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { AuthContext } from "./context/AuthContext";
 import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
 import Destinations from "./pages/Destinations";
 import Booking from "./pages/Booking";
 import Payments from "./pages/Payments";
 import Profile from "./pages/Profile";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+
+function ProtectedRoute({ children }) {
+  const { user } = useContext(AuthContext);
+  return user ? children : <Navigate to="/login" />;
+}
 
 function App() {
   return (
     <Router>
-      <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/destinations" element={<Destinations />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/destinations" element={<Destinations />} />
-        <Route path="/booking" element={<Booking />} />
-        <Route path="/payments" element={<Payments />} />
-        <Route path="/profile" element={<Profile />} />
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/booking" element={<ProtectedRoute><Booking /></ProtectedRoute>} />
+        <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
       </Routes>
-      <Footer />
     </Router>
   );
 }

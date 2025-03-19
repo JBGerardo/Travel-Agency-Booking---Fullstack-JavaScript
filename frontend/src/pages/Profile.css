@@ -1,0 +1,29 @@
+.profile-container {
+    text-align: center;
+    padding: 30px;
+  }
+  
+  .booking-card {
+    background: white;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    margin: 10px auto;
+    width: 50%;
+    text-align: left;
+  }
+  /*Cancel Booking*/
+  .booking-card button {
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  
+  .booking-card button:hover {
+    background-color: darkred;
+  }
+  

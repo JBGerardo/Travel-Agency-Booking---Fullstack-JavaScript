@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Booking = require("../models/Booking");
 const authMiddleware = require("../middleware/authMiddleware");
+const { cancelBooking, getUserBookings } = require("../controllers/bookingController");
 
 // Create a booking (Protected Route)
 router.post("/", authMiddleware, async (req, res) => {
@@ -30,5 +31,12 @@ router.get("/", authMiddleware, async (req, res) => {
         res.status(500).json({ message: "Server error", error });
     }
 });
+
+// Get bookings for a specific user
+router.get("/user/:userId", authMiddleware, getUserBookings);
+
+// Route to cancel a booking
+router.put("/cancel/:id", authMiddleware, cancelBooking);
+
 
 module.exports = router;

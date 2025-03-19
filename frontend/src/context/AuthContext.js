@@ -1,32 +1,33 @@
 import React, { createContext, useState, useEffect } from "react";
-import { api } from "../services/api";
+import axios from "axios";
 
-// Create an authentication context
+// Create authentication context to manage user state across the app
 export const AuthContext = createContext();
 
-// AuthProvider will wrap the whole app and provide auth state
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null); // Store logged-in user info
-  const [token, setToken] = useState(localStorage.getItem("token") || ""); // Store JWT token
+  const [user, setUser] = useState(null);  // Stores user info
+  const [token, setToken] = useState(localStorage.getItem("token") || "");  // Store JWT token
 
-  // Fetch user profile if token exists
+  // Fetch user profile when token is available
   useEffect(() => {
     if (token) {
-      api.get("/auth/profile", { headers: { Authorization: `Bearer ${token}` } })
-        .then(res => setUser(res.data))
-        .catch(() => setUser(null));
+      axios.get("http://localhost:5000/api/auth/profile", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(res => setUser(res.data))
+      .catch(() => setUser(null)); // Clear user if token is invalid
     }
   }, [token]);
 
-  // Function to log in user
+  // Function to log in user and store token
   const login = async (email, password) => {
-    const res = await api.post("/auth/login", { email, password });
-    localStorage.setItem("token", res.data.token); // Save token
+    const res = await axios.post("http://localhost:5000/api/auth/login", { email, password });
+    localStorage.setItem("token", res.data.token);
     setToken(res.data.token);
     setUser(res.data.user);
   };
 
-  // Function to log out user
+  // Function to log out user and clear token
   const logout = () => {
     localStorage.removeItem("token");
     setToken("");
@@ -35,7 +36,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{ user, login, logout }}>
-      {children}
+      {children} {/* Provides authentication state to entire app */}
     </AuthContext.Provider>
   );
 };
