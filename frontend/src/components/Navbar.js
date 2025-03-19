@@ -1,11 +1,15 @@
-import React from "react";
+import { Link } from "react-router-dom";
 
-function Navbar() {
+const Navbar = () => {
   return (
-    <nav>
-      <h1>Travel Booking System</h1>
+    <nav className="navbar">
+      <ul>
+        <li><Link to="/destinations">Destinations</Link></li>
+        <li><Link to="/profile">Profile</Link></li>
+        <li><Link to="/logout">Logout</Link></li>
+      </ul>
     </nav>
   );
-}
+};
 
 export default Navbar;

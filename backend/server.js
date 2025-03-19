@@ -2,6 +2,8 @@ const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const connectDB = require("./config/db");
+const paymentRoutes = require("./routes/paymentRoutes");
+const destinationRoutes = require("./routes/destinationRoutes");
 
 // Load environment variables
 dotenv.config();
@@ -21,6 +23,7 @@ app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/bookings", require("./routes/bookingRoutes"));
 app.use("/api/payments", require("./routes/paymentRoutes"));
 app.use("/api/destinations", require("./routes/destinationRoutes"));
+app.use("/api/payments", paymentRoutes);
 
 // Start Server
 const PORT = process.env.PORT || 5000;
