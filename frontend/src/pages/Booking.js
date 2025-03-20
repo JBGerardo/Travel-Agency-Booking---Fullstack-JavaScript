@@ -28,44 +28,44 @@ function Booking() {
   const handleBooking = async (e) => {
     e.preventDefault();
     if (!travelDate) {
-      alert("Please select a travel date.");
-      return;
+        alert("Please select a travel date.");
+        return;
     }
 
     const token = localStorage.getItem("token");
     if (!token) {
-      alert("You must be logged in to book a trip.");
-      navigate("/login");
-      return;
+        alert("You must be logged in to book a trip.");
+        navigate("/login");
+        return;
     }
 
     try {
-      // Step 1: Create Booking
-      const bookingRes = await axios.post(
-        "http://localhost:5000/api/bookings",
-        {
-          user: user._id,
-          destination: destinationId,
-          date: travelDate,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+        // Step 1: Create Booking
+        const bookingRes = await axios.post("http://localhost:5000/api/bookings", {
+            user: user._id,
+            destination: destinationId,
+            date: travelDate,
+        }, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
 
-      if (!bookingRes.data.booking) {
-        throw new Error("Invalid response from the server.");
-      }
+        const bookingId = bookingRes.data.booking._id;
 
-      setBookingId(bookingRes.data.booking._id);
+        // Step 2: Create Stripe Checkout Session
+        const paymentRes = await axios.post("http://localhost:5000/api/payments/create-checkout-session", {
+            bookingId,
+        }, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
 
-      alert("Booking created! Proceeding to payment...");
-      window.location.href = `/payments?bookingId=${bookingRes.data.booking._id}`;
+        // Step 3: Redirect to Stripe
+        window.location.href = paymentRes.data.url;
     } catch (error) {
-      console.error("Booking error:", error.response ? error.response.data : error.message);
-      alert(`Booking failed: ${error.response ? error.response.data.message : "Please try again."}`);
+        console.error("Booking error:", error.response ? error.response.data : error.message);
+        alert("Booking failed. Please try again.");
     }
-  };
+};
+
 
   return (
     <div className="booking-container">

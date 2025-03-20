@@ -32,11 +32,32 @@ router.get("/", authMiddleware, async (req, res) => {
     }
 });
 
+
+
 // Get bookings for a specific user
 router.get("/user/:userId", authMiddleware, getUserBookings);
 
-// Route to cancel a booking
-router.put("/cancel/:id", authMiddleware, cancelBooking);
+//  Route to update booking status after payment
+router.put("/update/:bookingId", authMiddleware, async (req, res) => {
+    try {
+        const { bookingId } = req.params;
+        const { status } = req.body;
 
+        // Find booking by ID
+        const booking = await Booking.findById(bookingId);
+        if (!booking) {
+            return res.status(404).json({ message: "Booking not found" });
+        }
+
+        // Update status to confirmed
+        booking.status = status || "confirmed";
+        await booking.save();
+
+        res.status(200).json({ message: "Booking updated successfully", booking });
+    } catch (error) {
+        console.error("Error updating booking:", error);
+        res.status(500).json({ message: "Server error", error });
+    }
+});
 
 module.exports = router;

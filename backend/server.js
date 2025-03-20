@@ -4,6 +4,7 @@ const cors = require("cors");
 const connectDB = require("./config/db");
 const paymentRoutes = require("./routes/paymentRoutes");
 const destinationRoutes = require("./routes/destinationRoutes");
+const bookingRoutes = require("./routes/bookingRoutes");
 
 // Load environment variables
 dotenv.config();

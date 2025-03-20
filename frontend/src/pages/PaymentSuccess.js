@@ -11,12 +11,17 @@ const PaymentSuccess = () => {
         if (bookingId) {
             axios.put(`http://localhost:5000/api/bookings/update/${bookingId}`, {
                 status: "confirmed",
+            }, {
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
             })
             .then(() => {
                 alert("Payment successful! Your booking is confirmed.");
-                navigate("/profile");
+                navigate("/profile"); // Redirect user to profile page
             })
-            .catch(error => console.error("Error updating booking:", error));
+            .catch(error => {
+                console.error("Error updating booking:", error);
+                alert("Booking confirmation failed.");
+            });
         }
     }, [bookingId, navigate]);
 
