@@ -27,11 +27,14 @@ function Booking() {
   // Handle Booking Submission
   const handleBooking = async (e) => {
     e.preventDefault();
+    
+    // Ensure travel date is selected
     if (!travelDate) {
         alert("Please select a travel date.");
         return;
     }
 
+    // Ensure user is logged in
     const token = localStorage.getItem("token");
     if (!token) {
         alert("You must be logged in to book a trip.");
@@ -41,31 +44,28 @@ function Booking() {
 
     try {
         // Step 1: Create Booking
-        const bookingRes = await axios.post("http://localhost:5000/api/bookings", {
-            user: user._id,
-            destination: destinationId,
-            date: travelDate,
-        }, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
+        const bookingRes = await axios.post(
+            "http://localhost:5000/api/bookings",
+            { user: user._id, destination: destinationId, date: travelDate },
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
 
         const bookingId = bookingRes.data.booking._id;
 
         // Step 2: Create Stripe Checkout Session
-        const paymentRes = await axios.post("http://localhost:5000/api/payments/create-checkout-session", {
-            bookingId,
-        }, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
+        const paymentRes = await axios.post(
+            "http://localhost:5000/api/payments/create-checkout-session",
+            { bookingId },
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
 
         // Step 3: Redirect to Stripe
         window.location.href = paymentRes.data.url;
     } catch (error) {
         console.error("Booking error:", error.response ? error.response.data : error.message);
-        alert("Booking failed. Please try again.");
+        alert(error.response?.data?.message || "Booking failed. Please try again.");
     }
 };
-
 
   return (
     <div className="booking-container">
