@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
-import "./Booking.css";
+import "../styles/Booking.css";
 
 function Booking() {
   const { user } = useContext(AuthContext);

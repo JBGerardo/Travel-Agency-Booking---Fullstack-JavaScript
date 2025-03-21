@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import axios from "axios";
-import "./Profile.css";
+import "../styles/Profile.css";
 
 function Profile() {
   const { user, logout } = useContext(AuthContext);
