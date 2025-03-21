@@ -1,4 +1,3 @@
-// src/pages/Destinations.js
 import React, { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -18,7 +17,7 @@ function Destinations() {
       .catch(err => console.error("Error loading destinations:", err));
   }, []);
 
-  // Fetch current user's favorites
+  // Fetch user's favorites
   useEffect(() => {
     if (user) {
       axios.get("http://localhost:5000/api/users/favorites", {
@@ -56,11 +55,19 @@ function Destinations() {
       <div className="destination-list">
         {destinations.map(dest => (
           <div className="destination-card" key={dest._id}>
-            <h3>{dest.name}</h3>
-            <p>{dest.location}</p>
-            <p>{dest.description}</p>
-            <p><strong>${dest.price}</strong></p>
+            {/* Display Image */}
+            {dest.image ? (
+              <img src={`http://localhost:5000${dest.image}`} alt={dest.name} className="destination-image" />
+            ) : (
+              <p>No Image Available</p>
+            )}
 
+            <h3>{dest.name}</h3>
+            <p><strong>Location:</strong> {dest.location}</p>
+            <p><strong>Description:</strong> {dest.description}</p>
+            <p><strong>Price:</strong> ${dest.price}</p>
+
+            {/* Favorite button */}
             {user && (
               <button className="heart-button" onClick={() => toggleFavorite(dest._id)}>
                 {favorites.includes(dest._id) ? "❤️" : "🤍"} 

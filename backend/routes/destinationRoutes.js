@@ -35,4 +35,25 @@ router.post("/", authMiddleware, async (req, res) => {
     }
 });
 
+// Update destination image by ID (admin only)
+router.put("/:id/image", authMiddleware, async (req, res) => {
+    try {
+      if (req.user.role !== "admin") return res.status(403).json({ message: "Access denied." });
+  
+      const { image } = req.body;
+      const destination = await Destination.findByIdAndUpdate(
+        req.params.id,
+        { image },
+        { new: true }
+      );
+  
+      if (!destination) return res.status(404).json({ message: "Destination not found." });
+  
+      res.json({ message: "Image updated successfully", destination });
+    } catch (err) {
+      res.status(500).json({ message: "Server error", error: err });
+    }
+  });
+  
+
 module.exports = router;

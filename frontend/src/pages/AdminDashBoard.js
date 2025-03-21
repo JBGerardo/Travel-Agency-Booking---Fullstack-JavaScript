@@ -7,9 +7,19 @@ import "./AdminDashboard.css";
 function AdminDashboard() {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
+
   const [bookings, setBookings] = useState([]);
   const [payments, setPayments] = useState([]);
   const [users, setUsers] = useState([]);
+
+  // For Add Destination form
+  const [newDestination, setNewDestination] = useState({
+    name: "",
+    location: "",
+    price: "",
+    description: "",
+    image: ""
+  });
 
   // Redirect if not admin
   useEffect(() => {
@@ -18,7 +28,7 @@ function AdminDashboard() {
     }
   }, [user, navigate]);
 
-  // Fetch data
+  // Fetch bookings, payments, and users
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (user?.role === "admin" && token) {
@@ -42,6 +52,7 @@ function AdminDashboard() {
     }
   }, [user]);
 
+  // Cancel booking
   const handleCancel = async (bookingId) => {
     const token = localStorage.getItem("token");
     try {
@@ -55,10 +66,33 @@ function AdminDashboard() {
     }
   };
 
+  // Handle Add Destination
+  const handleAddDestination = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem("token");
+
+    try {
+        const imageName = newDestination.name.replace(/\s+/g, '-') + ".jpg"; // Example: "Bali Beach" -> "Bali-Beach.jpg"
+        const imagePath = `/uploads/${imageName}`;
+
+        await axios.post("http://localhost:5000/api/destinations", 
+            { ...newDestination, image: imagePath }, 
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        alert("Destination added successfully!");
+        setNewDestination({ name: "", location: "", price: "", description: "", image: "" });
+    } catch (err) {
+        console.error("Add destination failed:", err);
+        alert("Failed to add destination.");
+    }
+};
+
   return (
     <div className="admin-dashboard">
       <h2>Admin Dashboard</h2>
 
+      {/* All Bookings Section */}
       <div className="admin-section">
         <h3>All Bookings</h3>
         <table className="admin-table">
@@ -86,6 +120,7 @@ function AdminDashboard() {
         </table>
       </div>
 
+      {/* All Payments Section */}
       <div className="admin-section">
         <h3>All Payments</h3>
         <table className="admin-table">
@@ -106,6 +141,7 @@ function AdminDashboard() {
         </table>
       </div>
 
+      {/* All Users Section */}
       <div className="admin-section">
         <h3>All Users</h3>
         <table className="admin-table">
@@ -123,6 +159,48 @@ function AdminDashboard() {
           </tbody>
         </table>
       </div>
+
+      {/* Add Destination Section */}
+      {user?.role === "admin" && (
+        <div className="admin-section">
+          <h3>Add New Destination</h3>
+          <form onSubmit={handleAddDestination} className="add-destination-form">
+            <input
+              type="text"
+              placeholder="Destination Name"
+              value={newDestination.name}
+              onChange={(e) => setNewDestination({ ...newDestination, name: e.target.value })}
+              required
+            />
+            <input
+              type="text"
+              placeholder="Location"
+              value={newDestination.location}
+              onChange={(e) => setNewDestination({ ...newDestination, location: e.target.value })}
+              required
+            />
+            <input
+              type="number"
+              placeholder="Price"
+              value={newDestination.price}
+              onChange={(e) => setNewDestination({ ...newDestination, price: e.target.value })}
+              required
+            />
+            <input
+              type="text"
+              placeholder="Image URL"
+              value={newDestination.image}
+              onChange={(e) => setNewDestination({ ...newDestination, image: e.target.value })}
+            />
+            <textarea
+              placeholder="Description"
+              value={newDestination.description}
+              onChange={(e) => setNewDestination({ ...newDestination, description: e.target.value })}
+            />
+            <button type="submit">Add Destination</button>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

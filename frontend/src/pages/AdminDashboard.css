@@ -40,3 +40,61 @@
     background-color: #c9302c;
   }
   
+  /*Add Destination Section*/
+
+/* Style for Add Destination Form */
+.add-destination-container {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  width: 50%;
+  margin: 20px auto;
+  text-align: center;
+}
+
+.add-destination-container h3 {
+  color: #333;
+  margin-bottom: 15px;
+  font-size: 22px;
+}
+
+.add-destination-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.add-destination-form input,
+.add-destination-form textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.add-destination-form textarea {
+  resize: vertical;
+  height: 80px;
+}
+
+.add-destination-form button {
+  background-color: #007bff;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.add-destination-form button:hover {
+  background-color: #0056b3;
+}
+
+@media (max-width: 768px) {
+  .add-destination-container {
+    width: 90%;
+  }
+}
