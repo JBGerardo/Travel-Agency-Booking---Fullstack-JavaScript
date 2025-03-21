@@ -60,4 +60,7 @@ router.put("/update/:bookingId", authMiddleware, async (req, res) => {
     }
 });
 
+// Cancel a booking by ID (Admin or User)
+router.put("/cancel/:id", authMiddleware, cancelBooking);
+
 module.exports = router;

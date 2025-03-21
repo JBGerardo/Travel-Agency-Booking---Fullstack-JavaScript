@@ -5,6 +5,7 @@ const connectDB = require("./config/db");
 const paymentRoutes = require("./routes/paymentRoutes");
 const destinationRoutes = require("./routes/destinationRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 // Load environment variables
 dotenv.config();
@@ -25,6 +26,8 @@ app.use("/api/bookings", require("./routes/bookingRoutes"));
 app.use("/api/payments", require("./routes/paymentRoutes"));
 app.use("/api/destinations", require("./routes/destinationRoutes"));
 app.use("/api/payments", paymentRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/bookings", bookingRoutes);
 
 // Start Server
 const PORT = process.env.PORT || 5000;

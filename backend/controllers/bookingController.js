@@ -7,7 +7,11 @@ exports.addBooking = async (req, res) => {
 
     // Validate input fields
     if (!user || !destination || !date) {
-      return res.status(400).json({ message: "All fields (user, destination, date) are required." });
+      return res
+        .status(400)
+        .json({
+          message: "All fields (user, destination, date) are required.",
+        });
     }
 
     // Check if the destination exists
@@ -17,13 +21,19 @@ exports.addBooking = async (req, res) => {
     }
 
     // Check if user has a cancelled booking for the same destination
-    let existingBooking = await Booking.findOne({ user, destination, status: "cancelled" });
+    let existingBooking = await Booking.findOne({
+      user,
+      destination,
+      status: "cancelled",
+    });
 
     if (existingBooking) {
       existingBooking.status = "pending"; // Reactivate the booking
       existingBooking.date = new Date(date);
       await existingBooking.save();
-      return res.status(200).json({ message: "Booking reactivated", booking: existingBooking });
+      return res
+        .status(200)
+        .json({ message: "Booking reactivated", booking: existingBooking });
     }
 
     // Create a new booking
@@ -31,7 +41,7 @@ exports.addBooking = async (req, res) => {
       user,
       destination,
       date: new Date(date),
-      status: "pending"
+      status: "pending",
     });
 
     await booking.save();
@@ -43,38 +53,39 @@ exports.addBooking = async (req, res) => {
 };
 
 exports.getUserBookings = async (req, res) => {
-    try {
-      const userId = req.params.userId;
-  
-      // Find bookings and populate the "destination" field to get full destination details
-      const bookings = await Booking.find({ user: userId }).populate("destination");
-  
-      res.json(bookings);
-    } catch (error) {
-      console.error("Error fetching bookings:", error);
-      res.status(500).json({ message: "Server error" });
-    }
-  };
+  try {
+    const userId = req.params.userId;
 
-  exports.cancelBooking = async (req, res) => {
-    try {
-      const bookingId = req.params.id;
-  
-      // Find and update the booking status to "cancelled"
-      const booking = await Booking.findByIdAndUpdate(
-        bookingId,
-        { status: "cancelled" },
-        { new: true }
-      );
-  
-      if (!booking) {
-        return res.status(404).json({ message: "Booking not found." });
-      }
-  
-      res.json({ message: "Booking cancelled successfully", booking });
-    } catch (error) {
-      console.error("Error cancelling booking:", error);
-      res.status(500).json({ message: "Server error" });
+    // Find bookings and populate the "destination" field to get full destination details
+    const bookings = await Booking.find({ user: userId }).populate(
+      "destination"
+    );
+
+    res.json(bookings);
+  } catch (error) {
+    console.error("Error fetching bookings:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.cancelBooking = async (req, res) => {
+  try {
+    const bookingId = req.params.id;
+
+    // Find and update the booking status to "cancelled"
+    const booking = await Booking.findByIdAndUpdate(
+      bookingId,
+      { status: "cancelled" },
+      { new: true }
+    );
+
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found." });
     }
-  };
-  
+
+    res.json({ message: "Booking cancelled successfully", booking });
+  } catch (error) {
+    console.error("Error cancelling booking:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

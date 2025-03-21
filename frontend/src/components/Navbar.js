@@ -10,14 +10,14 @@ const Navbar = () => {
       <ul>
         <li><Link to="/destinations">Destinations</Link></li>
 
-        {/* ✅ Only show Admin Dashboard for admin users */}
+        {/* Only show Admin Dashboard for admin users */}
         {user?.role === "admin" && (
           <li><Link to="/admin">Admin Dashboard</Link></li>
         )}
 
         {user ? (
           <>
-            {/* ✅ Only show Profile for non-admin users */}
+            {/*  Only show Profile for non-admin users */}
             {user.role !== "admin" && (
               <li><Link to="/profile">Profile</Link></li>
             )}
