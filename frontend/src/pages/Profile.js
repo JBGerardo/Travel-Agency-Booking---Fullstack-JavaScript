@@ -16,6 +16,13 @@ function Profile() {
     }
   }, [user, navigate]);
 
+    //  Redirect admin users to /admin
+    useEffect(() => {
+      if (user?.role === "admin") {
+        navigate("/admin");
+      }
+    }, [user, navigate]);
+
   // Fetch user bookings
   useEffect(() => {
     if (user) {
