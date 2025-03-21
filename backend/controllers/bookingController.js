@@ -1,5 +1,6 @@
 const Booking = require("../models/Booking");
 const Destination = require("../models/Destination");
+const sendEmail = require("../utils/sendEmail");
 
 exports.addBooking = async (req, res) => {
   try {
@@ -72,20 +73,29 @@ exports.cancelBooking = async (req, res) => {
   try {
     const bookingId = req.params.id;
 
-    // Find and update the booking status to "cancelled"
+    // Populate the user field to access email
     const booking = await Booking.findByIdAndUpdate(
       bookingId,
       { status: "cancelled" },
       { new: true }
-    );
+    ).populate("user");
 
     if (!booking) {
       return res.status(404).json({ message: "Booking not found." });
     }
 
-    res.json({ message: "Booking cancelled successfully", booking });
+    //  Ensure booking.user.email exists before calling sendEmail
+    if (booking.user && booking.user.email) {
+      await sendEmail(
+        booking.user.email,
+        "Booking Cancelled",
+        `Hi ${booking.user.name},\n\nYour booking to ${booking.destination} has been cancelled.`
+      );
+    }
+
+    res.json({ message: "Booking cancelled and user notified.", booking });
   } catch (error) {
     console.error("Error cancelling booking:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Server error", error });
   }
 };
