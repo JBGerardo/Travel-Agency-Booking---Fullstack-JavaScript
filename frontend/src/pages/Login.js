@@ -1,6 +1,7 @@
 import React, { useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
+import axios from "axios";
 
 function Login() {
   const [email, setEmail] = useState("");       // Stores email input
@@ -12,23 +13,25 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent page reload
     try {
-      // Call login function (updates context and localStorage)
-      await login(email, password);
-
-      // Retrieve user from localStorage to check their role
-      const storedUser = JSON.parse(localStorage.getItem("user"));
-
-      //  Role-based redirect
-      if (storedUser?.role === "admin") {
-        navigate("/admin");  // Redirect to admin dashboard
+      await login(email, password); // Call login function
+  
+      // Redirect based on role
+      const storedToken = localStorage.getItem("token");
+      const res = await axios.get("http://localhost:5000/api/auth/profile", {
+        headers: { Authorization: `Bearer ${storedToken}` }
+      });
+  
+      if (res.data.role === "admin") {
+        navigate("/admin");
       } else {
-        navigate("/profile");  // Redirect to user profile
+        navigate("/profile");
       }
+  
     } catch (err) {
-      alert("Invalid credentials"); // Show error if login fails
+      alert("Invalid credentials");
     }
   };
-
+  
   return (
     <div>
       <h2>Login</h2>
