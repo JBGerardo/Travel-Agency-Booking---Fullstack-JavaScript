@@ -5,7 +5,7 @@ import axios from "axios";
 import "../styles/Profile.css"; 
 
 function Profile() {
-  const { user, logout } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const [bookings, setBookings] = useState([]);
