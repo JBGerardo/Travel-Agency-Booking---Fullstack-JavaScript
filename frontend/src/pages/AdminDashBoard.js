@@ -19,6 +19,7 @@ function AdminDashboard() {
     price: "",
     description: "",
     image: "",
+    gallery: "",
     placesOfInterest: "",
     localCurrency: "",
     languageSpoken: "",
@@ -85,34 +86,80 @@ function AdminDashboard() {
     }
   };
 
-  // Handle Add Destination
-  const handleAddDestination = async (e) => {
-    e.preventDefault();
-    const token = localStorage.getItem("token");
+ // Handle Add Destination
+const handleAddDestination = async (e) => {
+  e.preventDefault();
+  const token = localStorage.getItem("token");
 
-    try {
-      const imageName = newDestination.name.replace(/\s+/g, "-") + ".jpg"; // Example: "Bali Beach" -> "Bali-Beach.jpg"
-      const imagePath = `/uploads/${imageName}`;
+  try {
+    // Automatically generate the main image filename based on the destination name
+    const imageName = newDestination.name.replace(/\s+/g, "-") + ".jpg";
+    const imagePath = `/uploads/${imageName}`;
 
-      await axios.post(
-        "http://localhost:5000/api/destinations",
-        { ...newDestination, image: imagePath },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+    // Convert gallery input (comma-separated) to an array of proper image paths
+    const galleryArray = newDestination.gallery
+      ? newDestination.gallery.split(",").map(img => `/uploads/${img.trim()}`)
+      : [];
 
-      alert("Destination added successfully!");
-      setNewDestination({
-        name: "",
-        location: "",
-        price: "",
-        description: "",
-        image: "",
-      });
-    } catch (err) {
-      console.error("Add destination failed:", err);
-      alert("Failed to add destination.");
-    }
-  };
+    // Build the full destination object with nested travelerNotes
+    const destinationPayload = {
+      name: newDestination.name,
+      location: newDestination.location,
+      price: newDestination.price,
+      description: newDestination.description,
+      image: imagePath,
+      gallery: galleryArray,
+      placesOfInterest: newDestination.placesOfInterest
+        ? newDestination.placesOfInterest.split(",").map(p => p.trim())
+        : [],
+      travelerNotes: {
+        localCurrency: newDestination.localCurrency,
+        languageSpoken: newDestination.languageSpoken,
+        timeZone: newDestination.timeZone,
+        visaRequirement: newDestination.visaRequirement,
+        localCuisineHighlights: newDestination.cuisineHighlights
+          ? newDestination.cuisineHighlights.split(",").map(c => c.trim())
+          : [],
+        mustTryDishes: newDestination.mustTryDishes
+          ? newDestination.mustTryDishes.split(",").map(d => d.trim())
+          : [],
+        festivalsAndEvents: newDestination.festivals
+          ? newDestination.festivals.split(",").map(f => f.trim())
+          : [],
+      },
+    };
+
+    // Send POST request to backend
+    await axios.post(
+      "http://localhost:5000/api/destinations",
+      destinationPayload,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    alert("Destination added successfully!");
+
+    // Reset form
+    setNewDestination({
+      name: "",
+      location: "",
+      price: "",
+      description: "",
+      image: "",
+      gallery: "",
+      placesOfInterest: "",
+      localCurrency: "",
+      languageSpoken: "",
+      timeZone: "",
+      visaRequirement: "",
+      cuisineHighlights: "",
+      mustTryDishes: "",
+      festivals: "",
+    });
+  } catch (err) {
+    console.error("Add destination failed:", err);
+    alert("Failed to add destination.");
+  }
+};
 
   return (
     <div className="admin-dashboard">
@@ -342,6 +389,17 @@ function AdminDashboard() {
                 setNewDestination({
                   ...newDestination,
                   festivals: e.target.value,
+                })
+              }
+            />
+            <input
+              type="text"
+              placeholder="Gallery Images (comma-separated filenames)"
+              value={newDestination.gallery}
+              onChange={(e) =>
+                setNewDestination({
+                  ...newDestination,
+                  gallery: e.target.value,
                 })
               }
             />

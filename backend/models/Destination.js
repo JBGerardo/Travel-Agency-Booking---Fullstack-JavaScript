@@ -6,6 +6,7 @@ const DestinationSchema = new mongoose.Schema({
   price: { type: Number, required: true },
   description: { type: String, required: true },
   image: { type: String },
+  gallery: [{ type: String }],
   placesOfInterest: [String],
   travelerNotes: {
     localCurrency: String,
