@@ -3,48 +3,55 @@
     padding: 30px;
   }
   
-  .booking-card {
-    background: white;
-    padding: 15px;
-    border-radius: 5px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-    margin: 10px auto;
-    width: 50%;
-    text-align: left;
-  }
-  /*Cancel Booking*/
-  .booking-card button {
-    background-color: red;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-top: 10px;
-  }
-  
-  .booking-card button:hover {
-    background-color: darkred;
-  }
-  
-  /*Nav Bar*/
-  .navbar {
-    background-color: #333;
-    padding: 10px;
-  }
-  
-  .navbar ul {
-    list-style: none;
-    display: flex;
-    gap: 20px;
-  }
-  
-  .navbar li {
-    display: inline;
-  }
-  
-  .navbar a {
-    color: white;
-    text-decoration: none;
-  }
-  
+ /*Nav Bar*/
+ .navbar {
+  background-color: #333;
+  padding: 10px;
+}
+
+.navbar ul {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+}
+
+.navbar li {
+  display: inline;
+}
+
+.navbar a {
+  color: white;
+  text-decoration: none;
+}
+
+.tab-buttons {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+  gap: 1rem;
+}
+
+.tab-buttons button {
+  padding: 0.6rem 1.2rem;
+  background-color: #eee;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  font-weight: bold;
+}
+
+.tab-buttons button.active {
+  background-color: #333;
+  color: white;
+}
+
+.tab-section {
+  margin-top: 2rem;
+}
+
+.booking-card {
+  background: #f8f8f8;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
