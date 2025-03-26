@@ -1,48 +1,48 @@
 // src/pages/Register.js
 import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import "../styles/Auth.css";
 
 function Register() {
+  const [form, setForm] = useState({ name: "", email: "", password: "", role: "customer", adminKey: "" });
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    role: "customer",
-    adminKey: ""
-  });
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      await axios.post("http://localhost:5000/api/auth/register", formData);
-      alert("Registration successful!");
+      await axios.post("http://localhost:5000/api/auth/register", form);
+      alert("Registration successful");
       navigate("/login");
     } catch (err) {
-      alert(err.response?.data?.message || "Registration failed.");
+      alert("Registration failed");
     }
   };
 
   return (
-    <div>
-      <h2>Register</h2>
-      <form onSubmit={handleSubmit}>
-        <input name="name" placeholder="Name" value={formData.name} onChange={handleChange} required />
-        <input name="email" type="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
-        <input name="password" type="password" placeholder="Password" value={formData.password} onChange={handleChange} required />
-        <select name="role" value={formData.role} onChange={handleChange}>
+    <div className="auth-container">
+      <form className="auth-form" onSubmit={handleSubmit}>
+        <h2>Register</h2>
+        <input type="text" placeholder="Name" required
+          value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+        <input type="email" placeholder="Email" required
+          value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+        <input type="password" placeholder="Password" required
+          value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+
+        <select onChange={(e) => setForm({ ...form, role: e.target.value })} value={form.role}>
           <option value="customer">Customer</option>
           <option value="admin">Admin</option>
         </select>
-        {formData.role === "admin" && (
-          <input name="adminKey" placeholder="Admin Key" value={formData.adminKey} onChange={handleChange} required />
+
+        {form.role === "admin" && (
+          <input type="text" placeholder="Admin Key"
+            value={form.adminKey} onChange={(e) => setForm({ ...form, adminKey: e.target.value })} />
         )}
+
         <button type="submit">Register</button>
+        <p>Already have an account? <Link to="/login">Login</Link></p>
       </form>
     </div>
   );

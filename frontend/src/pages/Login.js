@@ -1,59 +1,36 @@
+// src/pages/Login.js
 import React, { useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
+import "../styles/Auth.css"; // New shared styles
 
 function Login() {
-  const [email, setEmail] = useState("");       // Stores email input
-  const [password, setPassword] = useState(""); // Stores password input
-  const { login } = useContext(AuthContext);    // Use global authentication context
-  const navigate = useNavigate();               // Used for redirecting after login
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const { login } = useContext(AuthContext);
+  const navigate = useNavigate();
 
-  // Handle form submission
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent page reload
+    e.preventDefault();
     try {
-      await login(email, password); // Call login function
-  
-      // Redirect based on role
-      const storedToken = localStorage.getItem("token");
-      const res = await axios.get("http://localhost:5000/api/auth/profile", {
-        headers: { Authorization: `Bearer ${storedToken}` }
-      });
-  
-      if (res.data.role === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/profile");
-      }
-  
-    } catch (err) {
+      await login(email, password);
+      navigate("/profile");
+    } catch {
       alert("Invalid credentials");
     }
   };
-  
-  return (
-    <div>
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit">Login</button>
-      </form>
 
-      <p>Don't have an account? <Link to="/register">Sign up here</Link></p>
+  return (
+    <div className="auth-container">
+      <form className="auth-form" onSubmit={handleSubmit}>
+        <h2>Login</h2>
+        <input type="email" placeholder="Email" value={email}
+          onChange={(e) => setEmail(e.target.value)} required />
+        <input type="password" placeholder="Password" value={password}
+          onChange={(e) => setPassword(e.target.value)} required />
+        <button type="submit">Login</button>
+        <p>Don't have an account? <Link to="/register">Sign Up</Link></p>
+      </form>
     </div>
   );
 }
