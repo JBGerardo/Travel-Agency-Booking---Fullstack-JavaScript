@@ -5,11 +5,16 @@ const Booking = require("../models/Booking");
 const Payment = require("../models/Payment");
 const authMiddleware = require("../middleware/authMiddleware");
 
-// ✅ Create a Stripe checkout session and store payment in MongoDB
+// Create a Stripe checkout session and store payment in MongoDB
 router.post("/create-checkout-session", authMiddleware, async (req, res) => {
     try {
-        const { bookingId } = req.body;
-        
+        const { bookingId, calculatedPrice } = req.body;
+
+        // Validate required data
+        if (!bookingId || !calculatedPrice) {
+            return res.status(400).json({ message: "Booking ID and calculated price are required." });
+        }
+
         if (!req.user || !req.user.id) {
             return res.status(401).json({ message: "Unauthorized: User ID missing" });
         }
@@ -25,7 +30,7 @@ router.post("/create-checkout-session", authMiddleware, async (req, res) => {
         const successUrl = `${CLIENT_URL}/payments/success?bookingId=${bookingId}`;
         const cancelUrl = `${CLIENT_URL}/payments/cancel`;
 
-        // ✅ Step 1: Create Stripe Checkout Session
+        // Step 1: Create Stripe Checkout Session using calculated price
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ["card"],
             line_items: [
@@ -36,7 +41,7 @@ router.post("/create-checkout-session", authMiddleware, async (req, res) => {
                             name: booking.destination.name,
                             description: booking.destination.description,
                         },
-                        unit_amount: booking.destination.price * 100, // Convert to cents
+                        unit_amount: Math.round(calculatedPrice * 100), // Convert to cents
                     },
                     quantity: 1,
                 },
@@ -46,18 +51,19 @@ router.post("/create-checkout-session", authMiddleware, async (req, res) => {
             cancel_url: cancelUrl,
         });
 
-        // ✅ Step 2: Save Payment Record with Stripe `paymentIntentId`
+        // Step 2: Save payment record with Stripe session ID
         const newPayment = new Payment({
             user: userId,
             booking: booking._id,
-            amount: booking.destination.price,
+            amount: calculatedPrice,
             paymentMethod: "card",
-            paymentIntentId: session.id, // ✅ Store Stripe Payment Intent ID
+            paymentIntentId: session.id,
             status: "pending",
         });
 
         await newPayment.save();
 
+        // Send Stripe checkout session URL to frontend
         res.json({ url: session.url });
     } catch (error) {
         console.error("Stripe error:", error);
@@ -65,23 +71,23 @@ router.post("/create-checkout-session", authMiddleware, async (req, res) => {
     }
 });
 
-// ✅ Handle Payment Success and Update MongoDB
+// Handle payment success and update payment and booking records
 router.get("/success", async (req, res) => {
     try {
         const { bookingId } = req.query;
 
-        // ✅ Fetch Payment Record
+        // Find the payment associated with the booking
         const payment = await Payment.findOne({ booking: bookingId });
 
         if (!payment) {
             return res.status(404).json({ message: "Payment not found" });
         }
 
-        // ✅ Update Payment Status to "completed"
+        // Mark payment as completed
         payment.status = "completed";
         await payment.save();
 
-        // ✅ Update Booking Status to "confirmed"
+        // Confirm the booking
         const booking = await Booking.findById(payment.booking);
         if (booking) {
             booking.status = "confirmed";
@@ -94,6 +100,5 @@ router.get("/success", async (req, res) => {
         res.status(500).json({ message: "Error processing payment", error });
     }
 });
-
 
 module.exports = router;

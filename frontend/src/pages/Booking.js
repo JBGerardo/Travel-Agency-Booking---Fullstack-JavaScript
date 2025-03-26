@@ -12,76 +12,148 @@ function Booking() {
 
   const [destination, setDestination] = useState(null);
   const [travelDate, setTravelDate] = useState("");
-  const [bookingId, setBookingId] = useState(null);
+  const [tripType, setTripType] = useState("one-way");
+  const [includeHotel, setIncludeHotel] = useState(false);
+  const [numPeople, setNumPeople] = useState(1);
+  const [totalPrice, setTotalPrice] = useState(0);
 
-  // Fetch destination details
+  // Fetch destination info from MongoDB by ID
   useEffect(() => {
     if (destinationId) {
       axios
         .get(`http://localhost:5000/api/destinations/${destinationId}`)
-        .then((response) => setDestination(response.data))
-        .catch((error) => console.error("Error fetching destination:", error));
+        .then((res) => setDestination(res.data))
+        .catch((err) => console.error("Error fetching destination:", err));
     }
   }, [destinationId]);
 
-  // Handle Booking Submission
+  // Recalculate price when booking options change
+  useEffect(() => {
+    if (destination) {
+      let base = destination.price;
+      let multiplier = tripType === "roundtrip" ? 1.8 : 1;
+      let hotelCost = includeHotel ? 500 : 0;
+      let calculated = (base * multiplier + hotelCost) * numPeople;
+
+      setTotalPrice(calculated);
+    }
+  }, [destination, tripType, includeHotel, numPeople]);
+
+  // Submit booking to backend
   const handleBooking = async (e) => {
     e.preventDefault();
-    
-    // Ensure travel date is selected
+
     if (!travelDate) {
-        alert("Please select a travel date.");
-        return;
+      alert("Please select a travel date.");
+      return;
     }
 
-    // Ensure user is logged in
     const token = localStorage.getItem("token");
     if (!token) {
-        alert("You must be logged in to book a trip.");
-        navigate("/login");
-        return;
+      alert("You must be logged in to book a trip.");
+      navigate("/login");
+      return;
     }
 
     try {
-        // Step 1: Create Booking
-        const bookingRes = await axios.post(
-            "http://localhost:5000/api/bookings",
-            { user: user._id, destination: destinationId, date: travelDate },
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
+      // Step 1: Save booking to database
+      const bookingRes = await axios.post(
+        "http://localhost:5000/api/bookings",
+        {
+          user: user._id,
+          destination: destinationId,
+          date: travelDate,
+          tripType,
+          includeHotel,
+          numPeople,
+          totalPrice,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-        const bookingId = bookingRes.data.booking._id;
+      const bookingId = bookingRes.data.booking._id;
 
-        // Step 2: Create Stripe Checkout Session
-        const paymentRes = await axios.post(
-            "http://localhost:5000/api/payments/create-checkout-session",
-            { bookingId },
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
+      // Step 2: Send to Stripe Checkout
+      const paymentRes = await axios.post(
+        "http://localhost:5000/api/payments/create-checkout-session",
+        { bookingId, calculatedPrice: totalPrice },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-        // Step 3: Redirect to Stripe
-        window.location.href = paymentRes.data.url;
-    } catch (error) {
-        console.error("Booking error:", error.response ? error.response.data : error.message);
-        alert(error.response?.data?.message || "Booking failed. Please try again.");
+      // Step 3: Redirect to Stripe
+      window.location.href = paymentRes.data.url;
+    } catch (err) {
+      console.error("Booking error:", err.response?.data || err.message);
+      alert(err.response?.data?.message || "Booking failed. Please try again.");
     }
-};
+  };
 
   return (
     <div className="booking-container">
       <h2>Book Your Trip</h2>
+
       {destination ? (
         <div>
           <h3>{destination.name}</h3>
-          <p>{destination.description}</p>
+          <p style={{ fontStyle: "italic", marginBottom: "1rem" }}>
+            ✈️ All flights depart from <strong>Edmonton</strong> to your selected destination.
+          </p>
+
+          {/* Display destination banner */}
+          <img
+            src={`http://localhost:5000${destination.image}`}
+            alt={destination.name}
+            className="booking-image"
+          />
+
           <form onSubmit={handleBooking}>
-            <label>Select Travel Date:</label>
+            {/* Travel Date */}
+            <label>Travel Date:</label>
             <input
               type="date"
               value={travelDate}
               onChange={(e) => setTravelDate(e.target.value)}
               required
             />
+
+            {/* Trip Type Dropdown */}
+            <label>Trip Type:</label>
+            <select
+              value={tripType}
+              onChange={(e) => setTripType(e.target.value)}
+            >
+              <option value="one-way">One-way</option>
+              <option value="roundtrip">Roundtrip</option>
+            </select>
+
+            {/* Hotel Option */}
+            <label>Include Hotel (10 days):</label>
+            <input
+              type="checkbox"
+              checked={includeHotel}
+              onChange={() => setIncludeHotel(!includeHotel)}
+            />
+
+            {/* Number of Travelers */}
+            <label>Number of Travelers:</label>
+            <select
+              value={numPeople}
+              onChange={(e) => setNumPeople(parseInt(e.target.value))}
+            >
+              <option value={1}>1</option>
+              <option value={2}>2</option>
+              <option value={3}>3</option>
+            </select>
+
+            {/* Total Price Summary */}
+            <p>
+              <strong>Total Price:</strong> ${totalPrice.toFixed(2)}
+            </p>
+
             <button type="submit">Book Now</button>
           </form>
         </div>
