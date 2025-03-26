@@ -100,7 +100,6 @@ function Profile() {
           favorites.map((fav) => (
             <li key={fav._id} className="booking-card">
               <p><strong>{fav.name}</strong> - {fav.location}</p>
-              <p>{fav.description}</p>
               <p><strong>Price:</strong> ${fav.price}</p>
               <button onClick={() => removeFavorite(fav._id)}>Remove from Favorites</button>
             </li>

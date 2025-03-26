@@ -13,6 +13,7 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancel from "./pages/PaymentCancel";
 import AdminDestinations from "./pages/AdminDestinations";
 import AdminDashboard from "./pages/AdminDashboard"
+import DestinationDetail from "./pages/DestinationDetail";
 
 function ProtectedRoute({ children }) {
   const { user } = useContext(AuthContext);
@@ -43,6 +44,7 @@ function AppContent() {
         <Route path="/payments/cancel" element={<PaymentCancel />} />
         <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
         <Route path="/admin/destinations" element={<ProtectedRoute><AdminDestinations /></ProtectedRoute>} />
+        <Route path="/destination/:id" element={<DestinationDetail />} />
       </Routes>
     </>
   );
