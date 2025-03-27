@@ -11,7 +11,7 @@ exports.getDestinations = async (req, res) => {
   }
 };
 
-// Get a single destination by ID
+// Get a destination by ID
 exports.getDestinationById = async (req, res) => {
   try {
     const destination = await Destination.findById(req.params.id);
@@ -24,26 +24,78 @@ exports.getDestinationById = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-// Update destination details by ID (admin only)
-exports.updateDestination = async (req, res) => {
+
+// Create a new destination (Admin Only)
+exports.createDestination = async (req, res) => {
   try {
-    const updated = await Destination.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updated) return res.status(404).json({ message: "Destination not found" });
-    res.json({ message: "Destination updated successfully", destination: updated });
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Not authorized, admin access required" });
+    }
+
+    const { name, location, price, description, image } = req.body;
+    const destination = new Destination({ name, location, price, description, image });
+
+    await destination.save();
+    res.status(201).json({ message: "Destination added successfully", destination });
+  } catch (error) {
+    console.error("Error adding destination:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+// Update image for a destination
+exports.updateDestinationImage = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied." });
+    }
+
+    const { image } = req.body;
+    const destination = await Destination.findByIdAndUpdate(
+      req.params.id,
+      { image },
+      { new: true }
+    );
+
+    if (!destination) {
+      return res.status(404).json({ message: "Destination not found." });
+    }
+
+    res.json({ message: "Image updated successfully", destination });
   } catch (err) {
-    console.error("Error updating destination:", err);
     res.status(500).json({ message: "Server error", error: err });
   }
 };
 
-// Delete destination by ID (admin only)
+// Update entire destination object
+exports.updateDestination = async (req, res) => {
+  try {
+    const updated = await Destination.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!updated) {
+      return res.status(404).json({ message: "Destination not found" });
+    }
+    res.json(updated);
+  } catch (error) {
+    console.error("Error updating destination:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+// Delete destination (Admin Only)
 exports.deleteDestination = async (req, res) => {
   try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
     const deleted = await Destination.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ message: "Destination not found" });
+    if (!deleted) {
+      return res.status(404).json({ message: "Destination not found" });
+    }
+
     res.json({ message: "Destination deleted successfully" });
-  } catch (err) {
-    console.error("Error deleting destination:", err);
-    res.status(500).json({ message: "Server error", error: err });
+  } catch (error) {
+    console.error("Error deleting destination:", error);
+    res.status(500).json({ message: "Server error", error });
   }
 };

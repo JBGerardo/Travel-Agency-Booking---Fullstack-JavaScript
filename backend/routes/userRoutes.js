@@ -1,50 +1,25 @@
 const express = require("express");
 const router = express.Router();
-const User = require("../models/User");
 const authMiddleware = require("../middleware/authMiddleware");
+const {
+  addToFavorites,
+  removeFromFavorites,
+  getFavorites
+} = require("../controllers/userController");
 
-//  Add to favorites
-router.post("/favorites/:destinationId", authMiddleware, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.userId);
-    const { destinationId } = req.params;
+// @route   POST /api/users/favorites/:destinationId
+// @desc    Add a destination to user's favorites
+// @access  Private
+router.post("/favorites/:destinationId", authMiddleware, addToFavorites);
 
-    if (!user.favorites.includes(destinationId)) {
-      user.favorites.push(destinationId);
-      await user.save();
-    }
+// @route   DELETE /api/users/favorites/:destinationId
+// @desc    Remove a destination from user's favorites
+// @access  Private
+router.delete("/favorites/:destinationId", authMiddleware, removeFromFavorites);
 
-    res.json({ message: "Destination added to favorites" });
-  } catch (err) {
-    res.status(500).json({ message: "Server error", error: err });
-  }
-});
-
-//  Remove from favorites
-router.delete("/favorites/:destinationId", authMiddleware, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.userId);
-    const { destinationId } = req.params;
-
-    user.favorites = user.favorites.filter(
-      (id) => id.toString() !== destinationId
-    );
-
-    await user.save();
-    res.json({ message: "Destination removed from favorites" });
-  } catch (err) {
-    res.status(500).json({ message: "Server error", error: err });
-  }
-});
-
-// ⭐ Get all favorite destinations
-router.get("/favorites", authMiddleware, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.userId).populate("favorites");
-    res.json(user.favorites);
-  } catch (err) {
-    res.status(500).json({ message: "Server error", error: err });
-  }
-});
+// @route   GET /api/users/favorites
+// @desc    Get all favorite destinations
+// @access  Private
+router.get("/favorites", authMiddleware, getFavorites);
 
 module.exports = router;

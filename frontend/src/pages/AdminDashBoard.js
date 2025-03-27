@@ -88,16 +88,66 @@ function AdminDashboard() {
   };
 
   const handleEdit = (destination) => {
-    setEditDestination(destination);
+    setEditDestination({
+      ...destination,
+      gallery: destination.gallery || [],
+      placesOfInterest: destination.placesOfInterest || [],
+      travelerNotes: {
+        localCurrency: "",
+        languageSpoken: "",
+        timeZone: "",
+        visaRequirement: "",
+        localCuisineHighlights: [],
+        mustTryDishes: [],
+        festivalsAndEvents: [],
+        ...(destination.travelerNotes || {}),
+      },
+    });
     setEditModalOpen(true);
   };
 
   const saveEditChanges = async () => {
     const token = localStorage.getItem("token");
     try {
+      const updatedDestination = {
+        ...editDestination,
+        gallery:
+          typeof editDestination.gallery === "string"
+            ? editDestination.gallery.split(",").map((g) => g.trim())
+            : editDestination.gallery,
+        placesOfInterest:
+          typeof editDestination.placesOfInterest === "string"
+            ? editDestination.placesOfInterest.split(",").map((p) => p.trim())
+            : editDestination.placesOfInterest,
+        travelerNotes: {
+          ...editDestination.travelerNotes,
+          localCuisineHighlights: Array.isArray(
+            editDestination.travelerNotes.localCuisineHighlights
+          )
+            ? editDestination.travelerNotes.localCuisineHighlights
+            : editDestination.travelerNotes.localCuisineHighlights
+                ?.split(",")
+                .map((item) => item.trim()) || [],
+          mustTryDishes: Array.isArray(
+            editDestination.travelerNotes.mustTryDishes
+          )
+            ? editDestination.travelerNotes.mustTryDishes
+            : editDestination.travelerNotes.mustTryDishes
+                ?.split(",")
+                .map((item) => item.trim()) || [],
+          festivalsAndEvents: Array.isArray(
+            editDestination.travelerNotes.festivalsAndEvents
+          )
+            ? editDestination.travelerNotes.festivalsAndEvents
+            : editDestination.travelerNotes.festivalsAndEvents
+                ?.split(",")
+                .map((item) => item.trim()) || [],
+        },
+      };
+
       await axios.put(
         `http://localhost:5000/api/destinations/${editDestination._id}`,
-        editDestination,
+        updatedDestination,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -105,7 +155,9 @@ function AdminDashboard() {
       alert("Destination updated.");
       setEditModalOpen(false);
       setDestinations((prev) =>
-        prev.map((d) => (d._id === editDestination._id ? editDestination : d))
+        prev.map((d) =>
+          d._id === editDestination._id ? updatedDestination : d
+        )
       );
     } catch (err) {
       console.error("Update error:", err);
@@ -124,21 +176,23 @@ function AdminDashboard() {
     }
   };
 
+  //  Handle Add Destination Submission
   const handleAddDestination = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
 
     try {
-      const imagePath = `/uploads/${newDestination.name.replace(
-        /\s+/g,
-        "-"
-      )}.jpg`;
+      //  Image: Use input value or default to name-based
+      const imagePath = newDestination.image
+        ? `/uploads/${newDestination.image.trim()}`
+        : `/uploads/${newDestination.name.replace(/\s+/g, "-")}.jpg`;
+
+      //  Gallery: Convert comma-separated list to array of `/uploads/filename`
       const galleryArray = newDestination.gallery
-        ? newDestination.gallery
-            .split(",")
-            .map((img) => `/uploads/${img.trim()}`)
+        ? newDestination.gallery.split(",").map((img) => img.trim())
         : [];
 
+      //  Build full payload
       const payload = {
         name: newDestination.name,
         location: newDestination.location,
@@ -147,29 +201,33 @@ function AdminDashboard() {
         image: imagePath,
         gallery: galleryArray,
         placesOfInterest: newDestination.placesOfInterest
-          .split(",")
-          .map((p) => p.trim()),
+          ? newDestination.placesOfInterest.split(",").map((p) => p.trim())
+          : [],
         travelerNotes: {
-          localCurrency: newDestination.localCurrency,
-          languageSpoken: newDestination.languageSpoken,
-          timeZone: newDestination.timeZone,
-          visaRequirement: newDestination.visaRequirement,
+          localCurrency: newDestination.localCurrency || "",
+          languageSpoken: newDestination.languageSpoken || "",
+          timeZone: newDestination.timeZone || "",
+          visaRequirement: newDestination.visaRequirement || "",
           localCuisineHighlights: newDestination.cuisineHighlights
-            .split(",")
-            .map((c) => c.trim()),
+            ? newDestination.cuisineHighlights.split(",").map((c) => c.trim())
+            : [],
           mustTryDishes: newDestination.mustTryDishes
-            .split(",")
-            .map((d) => d.trim()),
+            ? newDestination.mustTryDishes.split(",").map((d) => d.trim())
+            : [],
           festivalsAndEvents: newDestination.festivals
-            .split(",")
-            .map((f) => f.trim()),
+            ? newDestination.festivals.split(",").map((f) => f.trim())
+            : [],
         },
       };
 
+      //  Send to backend
       await axios.post("http://localhost:5000/api/destinations", payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      alert("Destination added successfully");
+
+      alert("Destination added successfully!");
+
+      //  Reset form
       setNewDestination({
         name: "",
         location: "",
@@ -188,7 +246,7 @@ function AdminDashboard() {
       });
     } catch (err) {
       console.error("Add destination failed:", err);
-      alert("Failed to add destination");
+      alert("Failed to add destination.");
     }
   };
 
@@ -236,6 +294,7 @@ function AdminDashboard() {
             onSubmit={handleAddDestination}
             className="add-destination-form"
           >
+            <label>Destination Name:</label>
             <input
               type="text"
               placeholder="Destination Name"
@@ -245,6 +304,7 @@ function AdminDashboard() {
               }
               required
             />
+            <label>Location:</label>
             <input
               type="text"
               placeholder="Location"
@@ -257,6 +317,7 @@ function AdminDashboard() {
               }
               required
             />
+            <label>Price:</label>
             <input
               type="number"
               placeholder="Price"
@@ -266,6 +327,7 @@ function AdminDashboard() {
               }
               required
             />
+            <label>Description:</label>
             <textarea
               placeholder="Description"
               value={newDestination.description}
@@ -276,6 +338,7 @@ function AdminDashboard() {
                 })
               }
             />
+            <label>Places of Interest, Comma separeted:</label>
             <input
               type="text"
               placeholder="Places of Interest (comma separated)"
@@ -287,6 +350,7 @@ function AdminDashboard() {
                 })
               }
             />
+            <label>Local Currency:</label>
             <input
               type="text"
               placeholder="Local Currency"
@@ -298,6 +362,7 @@ function AdminDashboard() {
                 })
               }
             />
+            <label>Language Spoken:</label>
             <input
               type="text"
               placeholder="Language Spoken"
@@ -309,6 +374,7 @@ function AdminDashboard() {
                 })
               }
             />
+            <label>Time Zone:</label>
             <input
               type="text"
               placeholder="Time Zone"
@@ -320,6 +386,7 @@ function AdminDashboard() {
                 })
               }
             />
+            <label>Visa Requirement:</label>
             <input
               type="text"
               placeholder="Visa Requirement"
@@ -331,6 +398,7 @@ function AdminDashboard() {
                 })
               }
             />
+            <label>Cuisine Highlights (comma separated):</label>
             <input
               type="text"
               placeholder="Cuisine Highlights (comma separated)"
@@ -342,6 +410,7 @@ function AdminDashboard() {
                 })
               }
             />
+            <label>Must-Try Dishes (comma separated):</label>
             <input
               type="text"
               placeholder="Must-Try Dishes (comma separated)"
@@ -353,6 +422,7 @@ function AdminDashboard() {
                 })
               }
             />
+            <label>Festivals & Events (comma separated):</label>
             <input
               type="text"
               placeholder="Festivals & Events (comma separated)"
@@ -364,6 +434,16 @@ function AdminDashboard() {
                 })
               }
             />
+            <label>Main Image Filename (e.g. Bali-Beach.jpg):</label>
+            <input
+              type="text"
+              placeholder="Main Image Filename (e.g. Bali-Beach.jpg)"
+              value={newDestination.image}
+              onChange={(e) =>
+                setNewDestination({ ...newDestination, image: e.target.value })
+              }
+            />
+            <label>Gallery Images (comma separated filenames):</label>
             <input
               type="text"
               placeholder="Gallery Images (comma separated filenames)"
@@ -509,20 +589,25 @@ function AdminDashboard() {
         </div>
       )}
 
-      {/* Edit Destination Modal */}
+      {/*Modal Destination edit*/}
       {editModalOpen && (
         <div className="modal">
           <div className="modal-content">
             <h3>Edit Destination</h3>
+
+            <table>Destination Name:</table>
             <input
               type="text"
+              placeholder="Destination Name"
               value={editDestination.name}
               onChange={(e) =>
                 setEditDestination({ ...editDestination, name: e.target.value })
               }
             />
+            <label>Location:</label>
             <input
               type="text"
+              placeholder="Location"
               value={editDestination.location}
               onChange={(e) =>
                 setEditDestination({
@@ -531,8 +616,10 @@ function AdminDashboard() {
                 })
               }
             />
+            <label>Price:</label>
             <input
               type="number"
+              placeholder="Price"
               value={editDestination.price}
               onChange={(e) =>
                 setEditDestination({
@@ -541,7 +628,10 @@ function AdminDashboard() {
                 })
               }
             />
+            <label>Description:</label>
             <textarea
+              placeholder="Description"
+              rows={3}
               value={editDestination.description}
               onChange={(e) =>
                 setEditDestination({
@@ -550,8 +640,161 @@ function AdminDashboard() {
                 })
               }
             />
-            <button onClick={saveEditChanges}>Save</button>
-            <button onClick={() => setEditModalOpen(false)}>Cancel</button>
+            <label>Image (e.g. Bali-Beach.jpg):</label>
+            <input
+              type="text"
+              placeholder="Image (e.g. Bali-Beach.jpg)"
+              value={editDestination.image?.replace("/uploads/", "") || ""}
+              onChange={(e) =>
+                setEditDestination({
+                  ...editDestination,
+                  image: `/uploads/${e.target.value}`,
+                })
+              }
+            />
+            <labe>Gallery Images (comma-separated):</labe>
+            <input
+              type="text"
+              placeholder="Gallery Images (comma-separated)"
+              value={editDestination.gallery?.join(", ") || ""}
+              onChange={(e) =>
+                setEditDestination({
+                  ...editDestination,
+                  gallery: e.target.value.split(",").map((img) => img.trim()),
+                })
+              }
+            />
+            <label>Places of Interest (comma-separated):</label>
+            <textarea
+              placeholder="Places of Interest (comma-separated)"
+              value={editDestination.placesOfInterest?.join(", ") || ""}
+              onChange={(e) =>
+                setEditDestination({
+                  ...editDestination,
+                  placesOfInterest: e.target.value
+                    .split(",")
+                    .map((p) => p.trim()),
+                })
+              }
+            />
+            <label>Local Currency:</label>
+            <textarea
+              placeholder="Local Currency"
+              value={editDestination.travelerNotes?.localCurrency || ""}
+              onChange={(e) =>
+                setEditDestination({
+                  ...editDestination,
+                  travelerNotes: {
+                    ...editDestination.travelerNotes,
+                    localCurrency: e.target.value,
+                  },
+                })
+              }
+            />
+            <label>Language Spoken:</label>
+            <textarea
+              placeholder="Language Spoken"
+              value={editDestination.travelerNotes?.languageSpoken || ""}
+              onChange={(e) =>
+                setEditDestination({
+                  ...editDestination,
+                  travelerNotes: {
+                    ...editDestination.travelerNotes,
+                    languageSpoken: e.target.value,
+                  },
+                })
+              }
+            />
+            <label>Time Zone:</label>
+            <textarea
+              placeholder="Time Zone"
+              value={editDestination.travelerNotes?.timeZone || ""}
+              onChange={(e) =>
+                setEditDestination({
+                  ...editDestination,
+                  travelerNotes: {
+                    ...editDestination.travelerNotes,
+                    timeZone: e.target.value,
+                  },
+                })
+              }
+            />
+            <abel>Visa Requirement:</abel>
+            <textarea
+              placeholder="Visa Requirement"
+              value={editDestination.travelerNotes?.visaRequirement || ""}
+              onChange={(e) =>
+                setEditDestination({
+                  ...editDestination,
+                  travelerNotes: {
+                    ...editDestination.travelerNotes,
+                    visaRequirement: e.target.value,
+                  },
+                })
+              }
+            />
+            <label>Cuisine Highlights (comma-separated):</label>
+            <textarea
+              placeholder="Cuisine Highlights (comma-separated)"
+              value={
+                editDestination.travelerNotes?.localCuisineHighlights?.join(
+                  ", "
+                ) || ""
+              }
+              onChange={(e) =>
+                setEditDestination({
+                  ...editDestination,
+                  travelerNotes: {
+                    ...editDestination.travelerNotes,
+                    localCuisineHighlights: e.target.value
+                      .split(",")
+                      .map((c) => c.trim()),
+                  },
+                })
+              }
+            />
+            <label>Must-Try Dishes (comma-separated):</label>
+            <textarea
+              placeholder="Must-Try Dishes (comma-separated)"
+              value={
+                editDestination.travelerNotes?.mustTryDishes?.join(", ") || ""
+              }
+              onChange={(e) =>
+                setEditDestination({
+                  ...editDestination,
+                  travelerNotes: {
+                    ...editDestination.travelerNotes,
+                    mustTryDishes: e.target.value
+                      .split(",")
+                      .map((d) => d.trim()),
+                  },
+                })
+              }
+            />
+            <label>Festivals & Events (comma-separated):</label>
+            <textarea
+              placeholder="Festivals & Events (comma-separated)"
+              value={
+                editDestination.travelerNotes?.festivalsAndEvents?.join(", ") ||
+                ""
+              }
+              onChange={(e) =>
+                setEditDestination({
+                  ...editDestination,
+                  travelerNotes: {
+                    ...editDestination.travelerNotes,
+                    festivalsAndEvents: e.target.value
+                      .split(",")
+                      .map((f) => f.trim()),
+                  },
+                })
+              }
+            />
+
+            <div className="modal-buttons">
+              <button onClick={saveEditChanges}>Save</button>
+              <button onClick={() => setEditModalOpen(false)}>Cancel</button>
+            </div>
           </div>
         </div>
       )}

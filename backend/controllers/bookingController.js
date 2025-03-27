@@ -99,3 +99,52 @@ exports.cancelBooking = async (req, res) => {
     res.status(500).json({ message: "Server error", error });
   }
 };
+
+// Create a booking for the logged-in user
+exports.addBooking = async (req, res) => {
+  try {
+    const { destination, date } = req.body;
+
+    const booking = new Booking({
+      user: req.user.userId,
+      destination,
+      date
+    });
+
+    await booking.save();
+    res.status(201).json({ message: "Booking created successfully", booking });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+// Get bookings for the logged-in user (from /api/bookings)
+exports.getCurrentUserBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find({ user: req.user.userId }).populate("destination");
+    res.json(bookings);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+// Update a booking status after payment
+exports.updateBookingStatus = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const { status } = req.body;
+
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    booking.status = status || "confirmed";
+    await booking.save();
+
+    res.status(200).json({ message: "Booking updated successfully", booking });
+  } catch (error) {
+    console.error("Error updating booking:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};

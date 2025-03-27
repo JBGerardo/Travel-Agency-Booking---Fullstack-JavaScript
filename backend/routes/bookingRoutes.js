@@ -1,66 +1,37 @@
 const express = require("express");
 const router = express.Router();
-const Booking = require("../models/Booking");
 const authMiddleware = require("../middleware/authMiddleware");
-const { cancelBooking, getUserBookings } = require("../controllers/bookingController");
+const {
+  addBooking,
+  getCurrentUserBookings,
+  getUserBookings,
+  updateBookingStatus,
+  cancelBooking
+} = require("../controllers/bookingController");
 
-// Create a booking (Protected Route)
-router.post("/", authMiddleware, async (req, res) => {
-    try {
-        const { destination, date } = req.body;
+// @route   POST /api/bookings
+// @desc    Create a booking (current user)
+// @access  Private
+router.post("/", authMiddleware, addBooking);
 
-        const booking = new Booking({
-            user: req.user.userId,
-            destination,
-            date
-        });
+// @route   GET /api/bookings
+// @desc    Get current logged-in user's bookings
+// @access  Private
+router.get("/", authMiddleware, getCurrentUserBookings);
 
-        await booking.save();
-        res.status(201).json({ message: "Booking created successfully", booking });
-    } catch (error) {
-        res.status(500).json({ message: "Server error", error });
-    }
-});
-
-// Get all bookings for a user
-router.get("/", authMiddleware, async (req, res) => {
-    try {
-        const bookings = await Booking.find({ user: req.user.userId }).populate("destination");
-        res.json(bookings);
-    } catch (error) {
-        res.status(500).json({ message: "Server error", error });
-    }
-});
-
-
-
-// Get bookings for a specific user
+// @route   GET /api/bookings/user/:userId
+// @desc    Get bookings for a specific user (admin use)
+// @access  Private
 router.get("/user/:userId", authMiddleware, getUserBookings);
 
-//  Route to update booking status after payment
-router.put("/update/:bookingId", authMiddleware, async (req, res) => {
-    try {
-        const { bookingId } = req.params;
-        const { status } = req.body;
+// @route   PUT /api/bookings/update/:bookingId
+// @desc    Update booking status after payment
+// @access  Private
+router.put("/update/:bookingId", authMiddleware, updateBookingStatus);
 
-        // Find booking by ID
-        const booking = await Booking.findById(bookingId);
-        if (!booking) {
-            return res.status(404).json({ message: "Booking not found" });
-        }
-
-        // Update status to confirmed
-        booking.status = status || "confirmed";
-        await booking.save();
-
-        res.status(200).json({ message: "Booking updated successfully", booking });
-    } catch (error) {
-        console.error("Error updating booking:", error);
-        res.status(500).json({ message: "Server error", error });
-    }
-});
-
-// Cancel a booking by ID (Admin or User)
+// @route   PUT /api/bookings/cancel/:id
+// @desc    Cancel a booking and notify user
+// @access  Private
 router.put("/cancel/:id", authMiddleware, cancelBooking);
 
 module.exports = router;
