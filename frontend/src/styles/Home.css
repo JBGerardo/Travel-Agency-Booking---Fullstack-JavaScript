@@ -1,1 +1,33 @@
-/*Styling for home page */
+/* Home Page Styling */
+.home-container {
+    text-align: center;
+    padding: 2rem;
+    min-height: 100vh;
+    background-color: #f8f8f8; 
+  }
+  
+  /* Logo Styling */
+  .home-logo {
+    width: 80%;
+    max-width: 350px;
+    height: auto;
+    display: block;
+    margin: 0 auto 2rem auto;
+  }
+  
+  /* Text Section */
+  .home-welcome h1 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: #333;
+  }
+  
+  .home-welcome p {
+    font-size: 1.2rem;
+    color: #555;
+  }
+  
+  body {
+    background-color: #f8f8f8;
+  }
+  
