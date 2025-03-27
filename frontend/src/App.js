@@ -22,11 +22,11 @@ function ProtectedRoute({ children }) {
 
 //  New component to provide `useNavigate` to `AuthContext`
 function AppContent() {
-  const { setNavigate } = useContext(AuthContext); // Get setter function from AuthContext
-  const navigate = useNavigate(); // Get navigate function
+  const { setNavigate } = useContext(AuthContext); 
+  const navigate = useNavigate(); 
 
   useEffect(() => {
-    setNavigate(navigate); //  Pass navigate to AuthContext
+    setNavigate(navigate); 
   }, [navigate, setNavigate]);
 
   return (
